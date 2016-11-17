@@ -1,0 +1,14 @@
+{
+  "name": "skellington-plugin-red7",
+  "version": "1.0.0",
+  "description": "Skellington Plugin for the card game Red 7",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "^4.17.2"
+  }
+}
