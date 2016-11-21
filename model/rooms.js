@@ -1,0 +1,48 @@
+/**
+ * Created by jnornhold on 11/20/16.
+ */
+'use strict';
+
+const _ = require('lodash');
+const Table = require('./Table');
+
+let roomsCache = {};
+
+/**
+ * Gets a table based on the channel of the current message
+ *
+ * @param message
+ * @returns {*}
+ */
+module.exports.getTable = (message) => {
+  if (!_.get(roomsCache, `[${message.team}][${message.channel}]`)) {
+    console.log(`Creating new table in ${message.team} ${message.channel}`);
+
+    _.set(roomsCache, `[${message.team}][${message.channel}]`, new Table());
+  }
+
+  return roomsCache[message.team][message.channel];
+};
+
+
+/**
+ * Finds a table based on where the user is playing
+ *
+ * @param message
+ */
+module.exports.findTableForUser = (message, user) => {
+    // does a collection exist for this team?
+    if (_.get(roomsCache, `[${message.team}]`)) {
+      let table = _.find(roomsCache, (room) => {
+        return _.findIndex(room.players, (player) => {
+          return player.name === user;
+        })
+      });
+
+      return table[_.keys(table)[0]]; // dereference room name to return table object
+    }
+
+    return false;
+};
+
+module.exports.roomsCache = roomsCache;

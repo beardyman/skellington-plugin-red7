@@ -5,19 +5,30 @@
 const slackUtils = require('../utils/slack');
 const Player = require('./player');
 const Game = require('./game');
+const _ = require('lodash');
 
 
-class table {
+class Table {
 
   constructor() {
     this.maxPlayers = 4;
     this.players = [];
   }
 
-  joinTable(username) {
-    this.players.push(new Player(slackUtils.parseUsername(username)));
+  addPlayer(username) {
+    username = slackUtils.parseUsername(username);
+
+    if (!this.findPlayerByUsername(username)) {
+      this.players.push(new Player(slackUtils.parseUsername(username)));
+      return true;
+    } else {
+      return false;
+    }
   }
 
+  removePlayer(playerNames) {
+    _.remove(this.players, (p) => p.name === playerName );
+  }
 
   startGame() {
     this.game = new Game(this.players);
@@ -33,4 +44,15 @@ class table {
   }
 
 
+  findPlayerByUsername(username) {
+    _.forEach(this.players, (player) => {
+      if(player.name === username) {
+        return player;
+      }
+    });
+    return false;
+  }
+
 }
+
+module.exports = Table;

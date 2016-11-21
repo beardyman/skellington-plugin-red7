@@ -13,8 +13,21 @@ class Player {
     this.palette = [];
   }
 
+
+  handToString() {
+    return _.map(this.hand, (c)=>c.toString()).join('\n');
+  }
+
+  handToAttachments() {
+    return _.map(this.hand, (c)=>c.toAttachment());
+  }
+
   paletteToString() {
     return _.map(this.palette, (c)=>c.toString()).join('\n');
+  }
+
+  paletteToAttachments() {
+    return _.map(this.palette, (c)=>c.toAttachment());
   }
 
   addCardToHand(card) {
@@ -29,7 +42,5 @@ class Player {
     return _.pullAt(this.hand, cardIndex);
   }
 }
-
-
 
 module.exports = Player;

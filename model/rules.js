@@ -6,7 +6,13 @@
 const _ = require('lodash');
 const cardProperties = require('./card').properties;
 
-const cardRules = {
+class ruleSet {
+
+  constructor (deck) {
+    this.deck = deck;
+  }
+
+
   /**
    * Most Cards Below 4 Wins
    *
@@ -14,12 +20,12 @@ const cardRules = {
    * @param comparePalette
    * @returns {boolean}
    */
-  violet: (currentPalette, comparePalette) => {
+  violet(currentPalette, comparePalette) {
     let currentQualifying = _.groupBy(currentPalette, (c) => c.value < 4).true
       , compareQualifying = _.groupBy(comparePalette, (c) => c.value < 4).true;
 
-    return decide(currentQualifying, compareQualifying);
-  },
+    return this.decide(currentQualifying, compareQualifying);
+  }
 
   /**
    * Most Cards in a Row Wins
@@ -28,12 +34,12 @@ const cardRules = {
    * @param comparePalette
    * @returns {boolean}
    */
-  indigo: (currentPalette, comparePalette) => {
+  indigo(currentPalette, comparePalette) {
     let currentQualifying = getConsecutive(currentPalette)
       , compareQualifying = getConsecutive(comparePalette);
 
-    return decide(currentQualifying, compareQualifying);
-  },
+    return this.decide(currentQualifying, compareQualifying);
+  }
 
   /**
    * Most Different Colors Wins
@@ -42,22 +48,22 @@ const cardRules = {
    * @param comparePalette
    * @returns {boolean}
    */
-  blue: (currentPalette, comparePalette) => {
+  blue (currentPalette, comparePalette) {
     let currentColorGroups = _.groupBy(currentPalette, 'color')
       , compareColorGroups = _.groupBy(comparePalette, 'color')
       , currentQualifying
       , compareQualifying;
 
     currentQualifying = _.map(currentColorGroups, (colorGroup) => {
-      return getHighestCard(colorGroup);
+      return this.getHighestCard(colorGroup);
     });
 
     compareQualifying = _.map(compareColorGroups, (colorGroup) => {
-      return getHighestCard(colorGroup);
+      return this.getHighestCard(colorGroup);
     });
 
-    return decide(currentQualifying, compareQualifying);
-  },
+    return this.decide(currentQualifying, compareQualifying);
+  }
 
   /**
    * Most Even Cards Wins
@@ -66,12 +72,12 @@ const cardRules = {
    * @param comparePalette
    * @returns {boolean}
    */
-  green: (currentPalette, comparePalette) => {
+  green (currentPalette, comparePalette) {
     let currentQualifying = _.groupBy(currentPalette, (c) => c.value % 2)['0']
       , compareQualifying = _.groupBy(comparePalette, (c) => c.value % 2)['0'];
 
-    return decide(currentQualifying, compareQualifying);
-  },
+    return this.decide(currentQualifying, compareQualifying);
+  }
 
   /**
    * Most of One Color Wins
@@ -80,14 +86,14 @@ const cardRules = {
    * @param comparePalette
    * @returns {boolean}
    */
-  yellow: (currentPalette, comparePalette) => {
+  yellow(currentPalette, comparePalette) {
     let currentColorGroups = _.groupBy(currentPalette, 'color')
       , compareColorGroups = _.groupBy(comparePalette, 'color')
-      , currentQualifying = _.maxBy(_.values(currentColorGroups), groupRank)
-      , compareQualifying = _.maxBy(_.values(compareColorGroups), groupRank);
+      , currentQualifying = _.maxBy(_.values(currentColorGroups), this.groupRank)
+      , compareQualifying = _.maxBy(_.values(compareColorGroups), this.groupRank);
 
-    return decide(currentQualifying, compareQualifying);
-  },
+    return this.decide(currentQualifying, compareQualifying);
+  }
 
   /**
    * Most of One Number Wins
@@ -96,14 +102,14 @@ const cardRules = {
    * @param comparePalette
    * @returns {boolean}
    */
-  orange: (currentPalette, comparePalette) => {
+  orange(currentPalette, comparePalette) {
     let currentValueGroups = _.groupBy(currentPalette, 'value')
       , compareValueGroups = _.groupBy(comparePalette, 'value')
-      , currentQualifying = _.maxBy(_.values(currentValueGroups), groupRank)
-      , compareQualifying = _.maxBy(_.values(compareValueGroups), groupRank);
+      , currentQualifying = _.maxBy(_.values(currentValueGroups), this.groupRank)
+      , compareQualifying = _.maxBy(_.values(compareValueGroups), this.groupRank);
 
-    return decide(currentQualifying, compareQualifying);
-  },
+    return this.decide(currentQualifying, compareQualifying);
+  }
 
   /**
    * Highest Card Wins
@@ -112,28 +118,56 @@ const cardRules = {
    * @param comparePalette
    * @returns {boolean}
    */
-  red: (currentPalette, comparePalette) => {
-    let currentHighest = getHighestCard(currentPalette)
-      , compareHighest = getHighestCard(comparePalette);
+  red(currentPalette, comparePalette) {
+    let currentHighest = this.getHighestCard(currentPalette)
+      , compareHighest = this.getHighestCard(comparePalette);
 
-    return currentHighest === getHighestCard([currentHighest, compareHighest]);
+    return currentHighest === this.getHighestCard([currentHighest, compareHighest]);
   }
-};
 
-function groupRank (group) {
-  return (cardProperties.colorRank.indexOf(group[0].color) * 7) + group.length;
-}
+  /**
+   * Gives a value to a group of cards based on the number of cards in the group then by color
+   *
+   * @param group
+   * @returns {*}
+   */
+  groupRank(group) {
+    return (group.length * this.deck.cardsPerSuit) + cardProperties.colorRank.indexOf(this.getHighestCard(group).color);
+  }
 
-/**
- * Gets the highest card first by value then by color rank
- *
- * @param cards
- * @returns {Card | {}}
- */
-function getHighestCard (cards) {
-  let sortedCards = _.sortBy(cards, 'rank');
 
-  return sortedCards[sortedCards.length - 1];
+  /**
+   * Gets the highest card first by value then by color rank
+   *
+   * @param cards
+   * @returns {Card | {}}
+   */
+  static getHighestCard(cards) {
+    let sortedCards = _.sortBy(cards, 'rank');
+
+    return sortedCards[sortedCards.length - 1];
+  }
+
+
+  /**
+   * Compares lists of qualifying cards or falls back to using the highest card of the qualifying sets.
+   *
+   * @param currentQualifying
+   * @param compareQualifying
+   * @returns {boolean}
+   */
+  decide (currentQualifying, compareQualifying) {
+    if (currentQualifying.length > compareQualifying.length) { // win
+      return true;
+    } else if (currentQualifying.length < compareQualifying.length) { // lose
+      return false;
+    } else { // tie, find highest card
+      let currentQualifyingHighest = this.getHighestCard(currentQualifying)
+        , compareQualifyingHighest = this.getHighestCard(compareQualifying);
+
+      return currentQualifyingHighest === this.getHighestCard([currentQualifyingHighest, compareQualifyingHighest]);
+    }
+  }
 }
 
 /**
@@ -178,24 +212,4 @@ function getConsecutive(cards) {
   return longestChain;
 }
 
-/**
- * Compares lists of qualifying cards or falls back to using the highest card of the qualifying sets.
- *
- * @param currentQualifying
- * @param compareQualifying
- * @returns {boolean}
- */
-function decide (currentQualifying, compareQualifying) {
-  if (currentQualifying.length > compareQualifying.length) { // win
-    return true;
-  } else if (currentQualifying.length < compareQualifying.length) { // lose
-    return false;
-  } else { // tie, find highest card
-    let currentQualifyingHighest = getHighestCard(currentQualifying)
-      , compareQualifyingHighest = getHighestCard(compareQualifying);
-
-    return currentQualifyingHighest === getHighestCard([currentQualifyingHighest, compareQualifyingHighest]);
-  }
-}
-
-module.exports = cardRules;
+module.exports = ruleSet;

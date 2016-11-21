@@ -2,15 +2,19 @@
  * Created by jnornhold on 11/16/16.
  */
 
-const rules = require('./rules');
-const cardProperties = require('./card').properties;
+const Rules = require('./rules');
 const Deck = require('./deck');
+const _ = require('lodash');
+const cardProperties = require('../model/card').properties;
 
 class Game {
   constructor (players) {
     this.players = players;
     this.currentRule = 'red';
-    this.deck = new Deck();
+    this.numCardsPerSuit = 7;
+    this.numCardsPerPlayerHand = 7;
+    this.deck = new Deck(this.numCardsPerSuit);
+    this.rules = new Rules(this.deck);
   }
 
   /**
@@ -18,7 +22,7 @@ class Game {
    */
   deal() {
     // fill each player's hand
-    for(let cardCount = 1; cardCount <= 7; cardCount++) {
+    for(let cardCount = 1; cardCount <= this.numCardsPerPlayerHand; cardCount++) {
       _.forEach(this.players, (player) => {
         player.addCardToHand(this.deck.dealCard());
       });
@@ -31,11 +35,12 @@ class Game {
 
     // figure out who goes first
     _.forEach(this.players, (player, index) => {
-      if(index === 0 || rules[this.currentRule](player.palette, this.players[index - 1].palette)) {
+      if(index === 0 || this.rules[this.currentRule](player.palette, this.players[index - 1].palette)) {
         this.currentWinnerIndex = index;
       }
     });
-    this.currentPlayerIndex = this.currentWinnerIndex + 1;
+
+    this.currentPlayerIndex = this.players.length > 1 ? this.currentWinnerIndex + 1 : this.currentWinnerIndex;
   }
 
   /**
@@ -44,11 +49,17 @@ class Game {
    * @returns {{turn: *, winner: *, rule: string}}
    */
   getStatus() {
-    return {
+    let status = {
       turn: this.players[this.currentPlayerIndex],
       winner: this.players[this.currentWinnerIndex],
       rule: this.currentRule
     };
+
+    return status;
+  }
+
+  getCurrentRule() {
+    return `${_.upperFirst(this.currentRule)} - ${cardProperties.cardRuleDescriptions[this.currentRule]}`;
   }
 
   /**
@@ -81,7 +92,7 @@ class Game {
 
     // is the play valid? Check against all players
     _.forEach(this.players, (playerCheck, playerCheckIndex)=>{
-      if (playerCheckIndex !== playerIndex && rules[evalRule](_.union([palettePlay], playerPalette), playerCheck.palette)) {
+      if (playerCheckIndex !== playerIndex && this.rules[evalRule](_.union([palettePlay], playerPalette), playerCheck.palette)) {
         throw new Error(`That play doesn't work!! ${playerCheck.name} is beating you with ${playerCheck.paletteToString()}!! If you can't beat them, you'll have to pass.`)
       }
     });
@@ -112,8 +123,16 @@ class Game {
     }
   }
 
+  findPlayerByUsername(username) {
+    let playerIndex = _.findIndex(this.players, (player) => {
+      return player.name === username
+    });
+
+    return this.players[playerIndex] || false;
+  }
+
   /**
-   * Removes a player from the game
+   * Removes a player from the game based on index
    *
    * @param playerIndex
    */
@@ -124,4 +143,15 @@ class Game {
     _.pullAt(this.players, playerIndex);
   }
 
+  /**
+   * Removes a player from the game based on username
+   *
+   * @param playerName
+   */
+  eliminatePlayerByName(playerName) {
+    _.remove(this.players, (p) => p.name === playerName );
+  }
+
 }
+
+module.exports = Game;

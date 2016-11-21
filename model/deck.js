@@ -7,12 +7,13 @@ const cardProperties = Card.properties;
 const _ = require('lodash');
 
 class Deck {
-  constructor() {
+  constructor(cardsPerSuit) {
     this.cards = [];
+    this.cardsPerSuit = cardsPerSuit;
 
     _.forEach(cardProperties.colorRank, (color) => {
-      for(let value = 1; value <= 7; value++) {
-        this.cards.push(new Card(color, value));
+      for(let value = 1; value <= this.cardsPerSuit; value++) {
+        this.cards.push(new Card(color, value, cardsPerSuit));
       }
     });
   }
@@ -30,3 +31,6 @@ class Deck {
     return randomCard;
   }
 }
+
+
+module.exports = Deck;

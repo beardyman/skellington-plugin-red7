@@ -1,18 +1,58 @@
 /**
- * Created by jnornhold on 11/16/16.
+ * Created by jnornhold on 11/20/16.
  */
+"use strict";
+
+const _ = require('lodash');
+const rooms = require('../model/rooms');
+const slackUtils = require('../utils/slack');
+const cardProperties = require('../model/card').properties;
+
+let playerControls = {};
 
 
-module.exports = (controller, bot)=> {
-  controller.hears('hand', 'direct_mention', (bot, message) => {
-    bot.reply(message, 'Hi!');
+playerControls.hand = (message) => {
+  return slackUtils.getUser(message.user).then((res)=> {
+    let user = res.name
+      , response
+      , table = rooms.findTableForUser(message, user)
+      , player;
+
+
+    if (table && table.game) {
+      player = table.game.findPlayerByUsername(user);
+
+      if (player) {
+        response = {
+          "Current Rule": [{
+            fallback: table.game.getCurrentRule(),
+            color: cardProperties.colorHexMap[table.game.currentRule],
+            text: table.game.getCurrentRule()
+          }],
+          "Hand": player.handToAttachments(),
+          "Palette": player.paletteToAttachments()
+        };
+      }
+    }
+
+    if (!response) {
+      response = `Sorry ${user}, it doesn't look like you're playing`;
+    }
+
+    return response;
   });
+};
 
-  controller.hears('play (\d) (\d)', 'direct_mention', (bot, message) => {
+playerControls.play = (message) => {
+  let rule = message.match[0]
+    , play = message.match[1];
 
-  });
+  play = play || rule;
+};
 
-  controller.hears('pass', 'direct_mention', (bot, message) => {
+playerControls.pass = () => {
 
-  });
-}
+};
+
+
+module.exports = playerControls;
