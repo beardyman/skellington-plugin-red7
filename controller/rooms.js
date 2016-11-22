@@ -67,7 +67,7 @@ module.exports.kick = (message) => {
     table.game.eliminatePlayerByName(user);
     table.removePlayer(user);
 
-    return `${user} has been elminated and kicked from the table`;s
+    return `${user} has been elimnated and kicked from the table`;
   });
 };
 
