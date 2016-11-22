@@ -1,10 +1,8 @@
-/**
- * Created by jnornhold on 11/20/16.
- */
 'use strict';
 
 const _ = require('lodash');
-const Table = require('./Table');
+const Table = require('./table');
+const slackUtils = require('../utils/slack');
 
 let roomsCache = {};
 
@@ -16,11 +14,9 @@ let roomsCache = {};
  */
 module.exports.getTable = (message) => {
   if (!_.get(roomsCache, `[${message.team}][${message.channel}]`)) {
-    console.log(`Creating new table in ${message.team} ${message.channel}`);
-
+    console.log(`creating new table in [${message.team}][${message.channel}]`);
     _.set(roomsCache, `[${message.team}][${message.channel}]`, new Table());
   }
-
   return roomsCache[message.team][message.channel];
 };
 
@@ -38,11 +34,22 @@ module.exports.findTableForUser = (message, user) => {
           return player.name === user;
         })
       });
-
       return table[_.keys(table)[0]]; // dereference room name to return table object
     }
-
     return false;
 };
+
+module.exports.init = () => {
+  return slackUtils.load().then((data) => {
+
+    console.log('setting cache to', data);
+    roomsCache = data || {};
+  });
+};
+
+module.exports.save = () => {
+  return slackUtils.save(roomsCache);
+};
+
 
 module.exports.roomsCache = roomsCache;

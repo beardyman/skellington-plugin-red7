@@ -6,8 +6,9 @@
 const rooms = require('../controller/rooms');
 const slackUtils = require('../utils/slack');
 
-
 module.exports = (controller) => {
+
+  rooms.init();
 
   /**
    * Join a table

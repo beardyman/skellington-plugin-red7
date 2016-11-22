@@ -1,16 +1,12 @@
-/**
- * Created by jnornhold on 11/16/16.
- */
 'use strict';
 
+const slackUtils = require('./utils/slack');
 const room = require('./actions/room');
 const player = require('./actions/player');
-const slackUtils = require('./utils/slack');
 
 module.exports = {
   init: (controller, bot, expressApp) => {
     // build your bot logic here!
-
 
     slackUtils.init(controller, bot);
 
@@ -19,9 +15,7 @@ module.exports = {
 
 
     // player commands
-    player(controller, bot);
-
-
+    player(controller, bot);s
 
   }
 };

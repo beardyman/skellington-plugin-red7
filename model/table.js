@@ -1,15 +1,11 @@
-/**
- * Created by jnornhold on 11/16/16.
- */
+'use strict';
 
-const slackUtils = require('../utils/slack');
 const Player = require('./player');
 const Game = require('./game');
 const _ = require('lodash');
-
+const slackUtils = require('../utils/slack');
 
 class Table {
-
   constructor() {
     this.maxPlayers = 4;
     this.players = [];
@@ -19,7 +15,7 @@ class Table {
     username = slackUtils.parseUsername(username);
 
     if (!this.findPlayerByUsername(username)) {
-      this.players.push(new Player(slackUtils.parseUsername(username)));
+      this.players.push(new Player(username));
       return true;
     } else {
       return false;
@@ -36,7 +32,7 @@ class Table {
   }
 
   finishGame() {
-    this.game = undefined;
+    delete this.game;
   }
 
   isGameInProgress() {

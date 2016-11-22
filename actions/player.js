@@ -34,11 +34,17 @@ module.exports = (controller, bot)=> {
     });
   });
 
-  controller.hears('play (\d) (\d)', ['direct_message','direct_mention'], (bot, message) => {
-    return slackUtils.respond(bot, message, player.play(message));
+  controller.hears('play (\\d)\\s*(\\d)?', ['direct_message','direct_mention'], (bot, message) => {
+    return player.play(message).then(() => {
+      // todo: respond to player saying their play is successful or not
+
+      // todo: if their play is successful, post in room channel with current game status
+    });
   });
 
   controller.hears('pass', ['direct_message','direct_mention'], (bot, message) => {
     return slackUtils.respond(bot, message, player.pass(message));
+
+    // todo: Post in room channel with current game status stating that the current player couldn't stand the heat.
   });
 }

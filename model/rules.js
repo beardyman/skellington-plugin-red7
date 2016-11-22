@@ -55,11 +55,11 @@ class ruleSet {
       , compareQualifying;
 
     currentQualifying = _.map(currentColorGroups, (colorGroup) => {
-      return this.getHighestCard(colorGroup);
+      return ruleSet.getHighestCard(colorGroup);
     });
 
     compareQualifying = _.map(compareColorGroups, (colorGroup) => {
-      return this.getHighestCard(colorGroup);
+      return ruleSet.getHighestCard(colorGroup);
     });
 
     return this.decide(currentQualifying, compareQualifying);
@@ -119,10 +119,10 @@ class ruleSet {
    * @returns {boolean}
    */
   red(currentPalette, comparePalette) {
-    let currentHighest = this.getHighestCard(currentPalette)
-      , compareHighest = this.getHighestCard(comparePalette);
+    let currentHighest = ruleSet.getHighestCard(currentPalette)
+      , compareHighest = ruleSet.getHighestCard(comparePalette);
 
-    return currentHighest === this.getHighestCard([currentHighest, compareHighest]);
+    return currentHighest === ruleSet.getHighestCard([currentHighest, compareHighest]);
   }
 
   /**
@@ -132,7 +132,7 @@ class ruleSet {
    * @returns {*}
    */
   groupRank(group) {
-    return (group.length * this.deck.cardsPerSuit) + cardProperties.colorRank.indexOf(this.getHighestCard(group).color);
+    return (group.length * this.deck.cardsPerSuit) + cardProperties.colorRank.indexOf(ruleSet.getHighestCard(group).color);
   }
 
 
@@ -162,10 +162,10 @@ class ruleSet {
     } else if (currentQualifying.length < compareQualifying.length) { // lose
       return false;
     } else { // tie, find highest card
-      let currentQualifyingHighest = this.getHighestCard(currentQualifying)
-        , compareQualifyingHighest = this.getHighestCard(compareQualifying);
+      let currentQualifyingHighest = ruleSet.getHighestCard(currentQualifying)
+        , compareQualifyingHighest = ruleSet.getHighestCard(compareQualifying);
 
-      return currentQualifyingHighest === this.getHighestCard([currentQualifyingHighest, compareQualifyingHighest]);
+      return currentQualifyingHighest === ruleSet.getHighestCard([currentQualifyingHighest, compareQualifyingHighest]);
     }
   }
 }

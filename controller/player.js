@@ -4,6 +4,7 @@
 "use strict";
 
 const _ = require('lodash');
+const q = require('q');
 const rooms = require('../model/rooms');
 const slackUtils = require('../utils/slack');
 const cardProperties = require('../model/card').properties;
@@ -44,10 +45,23 @@ playerControls.hand = (message) => {
 };
 
 playerControls.play = (message) => {
-  let rule = message.match[0]
-    , play = message.match[1];
+  let rule = message.match[1]
+    , play = message.match[2];
 
-  play = play || rule;
+  if (play === undefined) {
+    play = rule;
+    rule = undefined;
+  }
+
+  return slackUtils.getUser(message.user).then((res)=> {
+    let user = res.name
+      , table = rooms.findTableForUser(message, user);
+
+
+    return table.game.playTurn(user, play, rule).then(() => {
+      return `${play} haz been dun played`;
+    });
+  });
 };
 
 playerControls.pass = () => {

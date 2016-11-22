@@ -4,12 +4,15 @@
 
 'use strict';
 
-const Table = require('../model/table');
 const _ = require('lodash');
 const q = require('q');
 const slackUtils = require('../utils/slack');
 const cardProperties = require('../model/card').properties;
 const rooms = require('../model/rooms');
+
+module.exports.init = () => {
+  return rooms.init();
+};
 
 /**
  *
@@ -58,7 +61,7 @@ module.exports.players = (message) => {
  * @returns {Promise.<TResult>}
  */
 module.exports.kick = (message) => {
-  let toKick = SlackUtils.parseUsername(message.match[0]);
+  let toKick = slackUtils.parseUsername(message.match[0]);
 
   return utils.getUser(toKick).then((res) => {
     let user = res.name
@@ -83,6 +86,8 @@ module.exports.startGame = (message) => {
   table.startGame();
 
   gameStatus = table.game.getStatus();
+
+  console.log(gameStatus);
   return q(`Current Rule: ${_.upperFirst(gameStatus.rule)} - ${cardProperties.cardRuleDescriptions[gameStatus.rule]} \n Current Player: ${gameStatus.turn.name}`);
 };
 

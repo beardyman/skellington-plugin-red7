@@ -6,6 +6,8 @@ const Rules = require('./rules');
 const Deck = require('./deck');
 const _ = require('lodash');
 const cardProperties = require('../model/card').properties;
+const slackUtils = require('../utils/slack');
+const rooms = require('./rooms');
 
 class Game {
   constructor (players) {
@@ -35,12 +37,34 @@ class Game {
 
     // figure out who goes first
     _.forEach(this.players, (player, index) => {
-      if(index === 0 || this.rules[this.currentRule](player.palette, this.players[index - 1].palette)) {
+      if(index === 0 || this.rules[this.currentRule](player.palette, this.players[this.doPlayerIndexMath(index, -1)].palette)) {
         this.currentWinnerIndex = index;
       }
     });
 
-    this.currentPlayerIndex = this.players.length > 1 ? this.currentWinnerIndex + 1 : this.currentWinnerIndex;
+    this.currentPlayerIndex = this.doPlayerIndexMath(this.currentWinnerIndex, 1);
+
+    return this.save();
+  }
+
+  /**
+   * Gets the index relative to a starting index based on the size of the player list.  Compensates for going around the corner.
+   *
+   * @param startingIndex - base index - assumed positive or zero
+   * @param relativePosition - position to find relative to the startingIndex
+   * @returns {*}
+   */
+  doPlayerIndexMath(startingIndex, relativePosition) {
+    let base = startingIndex + relativePosition
+      , ret;
+
+    if (base < 0) {
+      ret = this.players.length + base;
+    } else {
+      ret = base % this.players.length;
+    }
+
+    return ret;
   }
 
   /**
@@ -64,15 +88,16 @@ class Game {
 
   /**
    *
-   * @param playerIndex - index of the player
+   * @param playerUsername - player's username
    * @param palettePlayIndex {int} - index of the card to play
    * @param rulePlayIndex {int} - index of the card to play
    */
-  playTurn(playerIndex, palettePlayIndex, rulePlayIndex) {
+  playTurn(playerUsername, palettePlayIndex, rulePlayIndex) {
     let rulePlay = {}
       , palettePlay
       , evalRule
-      , playerPalette;
+      , playerPalette
+      , playerIndex = this.getPlayerIndex(playerUsername);
 
     if (playerIndex !== this.currentPlayerIndex) {
       throw new Error('It\'s not your turn silly');
@@ -107,7 +132,7 @@ class Game {
 
     this.currentWinnerIndex = playerIndex;
 
-    this.rotateTurn();
+    return this.rotateTurn();
   }
 
 
@@ -115,20 +140,35 @@ class Game {
    * Advances indexes to next player
    */
   rotateTurn() {
-    this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
+    this.currentPlayerIndex = this.doPlayerIndexMath(this.currentPlayerIndex, 1);
 
     if (this.players[this.currentPlayerIndex].hand.length === 0 && this.currentPlayerIndex !== this.currentWinnerIndex) {
       this.eliminatePlayer(this.currentPlayerIndex);
       this.rotateTurn();
     }
+
+    return this.save();
   }
 
+  /**
+   *
+   * @param username
+   * @returns {*|boolean}
+   */
   findPlayerByUsername(username) {
-    let playerIndex = _.findIndex(this.players, (player) => {
+    let playerIndex = this.getPlayerIndex(username);
+    return this.players[playerIndex] || false;
+  }
+
+  /**
+   *
+   * @param username
+   * @returns {number}
+   */
+  getPlayerIndex(username) {
+    return  _.findIndex(this.players, (player) => {
       return player.name === username
     });
-
-    return this.players[playerIndex] || false;
   }
 
   /**
@@ -138,18 +178,26 @@ class Game {
    */
   eliminatePlayer(playerIndex) {
     if (playerIndex < this.currentWinnerIndex) {
-      this.currentWinnerIndex--;
+      this.currentWinnerIndex = this.doPlayerIndexMath(this.currentPlayerIndex, -1);
     }
     _.pullAt(this.players, playerIndex);
   }
 
-  /**
+  /**s
    * Removes a player from the game based on username
    *
    * @param playerName
    */
   eliminatePlayerByName(playerName) {
     _.remove(this.players, (p) => p.name === playerName );
+    return this.save();
+  }
+
+  /**
+   * Saves game data
+   */
+  save() {
+    rooms.save();
   }
 
 }
