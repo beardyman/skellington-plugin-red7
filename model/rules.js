@@ -21,8 +21,8 @@ class ruleSet {
    * @returns {boolean}
    */
   violet(currentPalette, comparePalette) {
-    let currentQualifying = _.groupBy(currentPalette, (c) => c.value < 4).true
-      , compareQualifying = _.groupBy(comparePalette, (c) => c.value < 4).true;
+    let currentQualifying = _.groupBy(currentPalette, (c) => c.value < 4).true || []
+      , compareQualifying = _.groupBy(comparePalette, (c) => c.value < 4).true || [];
 
     return this.decide(currentQualifying, compareQualifying);
   }
@@ -35,8 +35,10 @@ class ruleSet {
    * @returns {boolean}
    */
   indigo(currentPalette, comparePalette) {
-    let currentQualifying = getConsecutive(currentPalette)
-      , compareQualifying = getConsecutive(comparePalette);
+    let currentQualifying = getConsecutive(currentPalette) || []
+      , compareQualifying = getConsecutive(comparePalette) || [];
+
+    console.log(currentQualifying, compareQualifying);
 
     return this.decide(currentQualifying, compareQualifying);
   }
@@ -49,8 +51,8 @@ class ruleSet {
    * @returns {boolean}
    */
   blue (currentPalette, comparePalette) {
-    let currentColorGroups = _.groupBy(currentPalette, 'color')
-      , compareColorGroups = _.groupBy(comparePalette, 'color')
+    let currentColorGroups = _.groupBy(currentPalette, 'color') || {}
+      , compareColorGroups = _.groupBy(comparePalette, 'color') || {}
       , currentQualifying
       , compareQualifying;
 
@@ -73,8 +75,8 @@ class ruleSet {
    * @returns {boolean}
    */
   green (currentPalette, comparePalette) {
-    let currentQualifying = _.groupBy(currentPalette, (c) => c.value % 2)['0']
-      , compareQualifying = _.groupBy(comparePalette, (c) => c.value % 2)['0'];
+    let currentQualifying = _.groupBy(currentPalette, (c) => c.value % 2)['0'] || []
+      , compareQualifying = _.groupBy(comparePalette, (c) => c.value % 2)['0'] || [];
 
     return this.decide(currentQualifying, compareQualifying);
   }
@@ -87,10 +89,10 @@ class ruleSet {
    * @returns {boolean}
    */
   yellow(currentPalette, comparePalette) {
-    let currentColorGroups = _.groupBy(currentPalette, 'color')
-      , compareColorGroups = _.groupBy(comparePalette, 'color')
-      , currentQualifying = _.maxBy(_.values(currentColorGroups), this.groupRank)
-      , compareQualifying = _.maxBy(_.values(compareColorGroups), this.groupRank);
+    let currentColorGroups = _.groupBy(currentPalette, 'color') || {}
+      , compareColorGroups = _.groupBy(comparePalette, 'color') || {}
+      , currentQualifying = _.maxBy(_.values(currentColorGroups), this.rankColorGroup.bind(this))
+      , compareQualifying = _.maxBy(_.values(compareColorGroups), this.rankColorGroup.bind(this));
 
     return this.decide(currentQualifying, compareQualifying);
   }
@@ -103,10 +105,10 @@ class ruleSet {
    * @returns {boolean}
    */
   orange(currentPalette, comparePalette) {
-    let currentValueGroups = _.groupBy(currentPalette, 'value')
-      , compareValueGroups = _.groupBy(comparePalette, 'value')
-      , currentQualifying = _.maxBy(_.values(currentValueGroups), this.groupRank)
-      , compareQualifying = _.maxBy(_.values(compareValueGroups), this.groupRank);
+    let currentValueGroups = _.groupBy(currentPalette, 'value') || {}
+      , compareValueGroups = _.groupBy(comparePalette, 'value') || {}
+      , currentQualifying = _.maxBy(_.values(currentValueGroups), this.rankNumberGroup.bind(this))
+      , compareQualifying = _.maxBy(_.values(compareValueGroups), this.rankNumberGroup.bind(this));
 
     return this.decide(currentQualifying, compareQualifying);
   }
@@ -119,10 +121,17 @@ class ruleSet {
    * @returns {boolean}
    */
   red(currentPalette, comparePalette) {
-    let currentHighest = ruleSet.getHighestCard(currentPalette)
-      , compareHighest = ruleSet.getHighestCard(comparePalette);
+    if (currentPalette.length > 0) {
+      if (comparePalette.length === 0) {
+        return true;
+      }
+      let currentHighest = ruleSet.getHighestCard(currentPalette)
+        , compareHighest = ruleSet.getHighestCard(comparePalette);
 
-    return currentHighest === ruleSet.getHighestCard([currentHighest, compareHighest]);
+      return currentHighest.rank === ruleSet.getHighestCard([currentHighest, compareHighest]).rank;
+    } else {
+      return false;
+    }
   }
 
   /**
@@ -131,8 +140,12 @@ class ruleSet {
    * @param group
    * @returns {*}
    */
-  groupRank(group) {
+  rankColorGroup(group) {
     return (group.length * this.deck.cardsPerSuit) + cardProperties.colorRank.indexOf(ruleSet.getHighestCard(group).color);
+  }
+
+  rankNumberGroup(group) {
+    return (group.length * cardProperties.colorRank.length) + _.get(group, '[0].value') || 0;
   }
 
 
@@ -157,15 +170,14 @@ class ruleSet {
    * @returns {boolean}
    */
   decide (currentQualifying, compareQualifying) {
-    if (currentQualifying.length > compareQualifying.length) { // win
+    if (currentQualifying.length === 0) { // you can never win if you don't have qualifying card. // lose
+      return false;
+    } else if (currentQualifying.length > compareQualifying.length) { // win
       return true;
     } else if (currentQualifying.length < compareQualifying.length) { // lose
       return false;
-    } else { // tie, find highest card
-      let currentQualifyingHighest = ruleSet.getHighestCard(currentQualifying)
-        , compareQualifyingHighest = ruleSet.getHighestCard(compareQualifying);
-
-      return currentQualifyingHighest === ruleSet.getHighestCard([currentQualifyingHighest, compareQualifyingHighest]);
+    } else { // tie, find highest card / also known as the red rule
+      return this.red(currentQualifying, compareQualifying);
     }
   }
 }

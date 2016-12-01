@@ -19,7 +19,7 @@ const colorHexMap = {
   'blue':   '#308FBA', // 48, 143, 186
   'green':  '#34AF48', // 52, 175, 72
   'yellow': '#C4AE3F', // 196, 174, 63
-  'orange': '#C2AF32', // 191, 82, 51
+  'orange': '#CE7113', //'#C2AF32', // 191, 82, 51
   'red':    '#8F2529'  // 143, 37, 41
 };
 
@@ -63,7 +63,7 @@ class Card {
     this.color = color;
     this.value = value;
     this.rule = cardRuleDescriptions[this.color];
-    this.rank = (this.value * cardsPerSuit) + colorRank.indexOf(this.color); // calculate rank based on value first then on color
+    this.rank = ((this.value - 1) * cardsPerSuit) + colorRank.indexOf(this.color) + 1; // calculate rank based on value first then on color
   }
 
   toString() {
