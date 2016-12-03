@@ -38,8 +38,6 @@ class ruleSet {
     let currentQualifying = getConsecutive(currentPalette) || []
       , compareQualifying = getConsecutive(comparePalette) || [];
 
-    console.log(currentQualifying, compareQualifying);
-
     return this.decide(currentQualifying, compareQualifying);
   }
 
@@ -53,16 +51,8 @@ class ruleSet {
   blue (currentPalette, comparePalette) {
     let currentColorGroups = _.groupBy(currentPalette, 'color') || {}
       , compareColorGroups = _.groupBy(comparePalette, 'color') || {}
-      , currentQualifying
-      , compareQualifying;
-
-    currentQualifying = _.map(currentColorGroups, (colorGroup) => {
-      return ruleSet.getHighestCard(colorGroup);
-    });
-
-    compareQualifying = _.map(compareColorGroups, (colorGroup) => {
-      return ruleSet.getHighestCard(colorGroup);
-    });
+      , currentQualifying = _.map(currentColorGroups, (colorGroup) => ruleSet.getHighestCard(colorGroup))
+      , compareQualifying = _.map(compareColorGroups, (colorGroup) => ruleSet.getHighestCard(colorGroup));
 
     return this.decide(currentQualifying, compareQualifying);
   }
@@ -91,8 +81,8 @@ class ruleSet {
   yellow(currentPalette, comparePalette) {
     let currentColorGroups = _.groupBy(currentPalette, 'color') || {}
       , compareColorGroups = _.groupBy(comparePalette, 'color') || {}
-      , currentQualifying = _.maxBy(_.values(currentColorGroups), this.rankColorGroup.bind(this))
-      , compareQualifying = _.maxBy(_.values(compareColorGroups), this.rankColorGroup.bind(this));
+      , currentQualifying = _.maxBy(_.values(currentColorGroups), this.rankColorGroup.bind(this)) || []
+      , compareQualifying = _.maxBy(_.values(compareColorGroups), this.rankColorGroup.bind(this)) || [];
 
     return this.decide(currentQualifying, compareQualifying);
   }
@@ -107,8 +97,8 @@ class ruleSet {
   orange(currentPalette, comparePalette) {
     let currentValueGroups = _.groupBy(currentPalette, 'value') || {}
       , compareValueGroups = _.groupBy(comparePalette, 'value') || {}
-      , currentQualifying = _.maxBy(_.values(currentValueGroups), this.rankNumberGroup.bind(this))
-      , compareQualifying = _.maxBy(_.values(compareValueGroups), this.rankNumberGroup.bind(this));
+      , currentQualifying = _.maxBy(_.values(currentValueGroups), this.rankNumberGroup.bind(this)) || []
+      , compareQualifying = _.maxBy(_.values(compareValueGroups), this.rankNumberGroup.bind(this)) || [];
 
     return this.decide(currentQualifying, compareQualifying);
   }
@@ -202,10 +192,9 @@ function getConsecutive(cards) {
   });
   _.pullAt(sortedCards, cardsToRemove);
 
-
   // assemble chains and pick the longest
   _.forEach(sortedCards, (card, index) => {
-    if (index === 0 || card.value === sortedCards[index - 1].value - 1) {
+    if (index === 0 || card.value === sortedCards[index - 1].value + 1) {
       currentChain.push(card);
     } else {
       // this chain finished, save it off and start over
