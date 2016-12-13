@@ -64,8 +64,16 @@ playerControls.play = (message) => {
   });
 };
 
-playerControls.pass = () => {
+playerControls.pass = (message) => {
+  return slackUtils.getUser(message.user).then((res)=> {
+    let user = res.name
+      , table = rooms.findTableForUser(message, user);
 
+
+    return table.game.pass(user).then(() => {
+      return `${user} has passed like a chump`;
+    });
+  });
 };
 
 

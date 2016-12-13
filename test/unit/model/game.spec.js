@@ -1,9 +1,8 @@
 "use strict";
 
-describe.only('Game', () => {
+describe('Game', () => {
   require('test/testUtils/suiteBootstrap')(global);
   let Stubber = require('test/testUtils/stubber')
-    , Card = require('model/card')
     , Game
     , game
     , roomsMock
@@ -23,6 +22,11 @@ describe.only('Game', () => {
     player1 = new PlayerMock();
     player2 = new PlayerMock();
     player3 = new PlayerMock();
+
+    player1.name = 'rick';
+    player2.name = 'morty';
+    player3.name = 'summer';
+
     playerList = [player1, player2, player3];
 
 
@@ -75,12 +79,6 @@ describe.only('Game', () => {
   });
 
   describe('Play Turn', () => {
-
-    beforeEach(() => {
-      player1.name = 'rick';
-      player2.name = 'morty';
-      player3.name = 'summer';
-    });
 
     it('should stop morty from playing a card', () => {
       game.currentPlayerIndex = 0;
@@ -171,6 +169,48 @@ describe.only('Game', () => {
         expect(game.currentWinnerIndex).to.equal(0);
         expect(game.currentPlayerIndex).to.equal(0);
         expect(isThereAWinner).to.equal(true);
+      });
+    });
+  });
+
+  describe('Pass', () => {
+
+    it('should refuse pass', () => {
+      expect(game.players.length).to.equal(3);
+
+      return game.pass('rick').then(()=>{throw new Error('Yo test failed');}).catch((err)=> {
+        expect(game.players.length).to.equal(3);
+        expect(err.message).to.match(/.*not your turn.*/);
+      });
+    });
+
+    it('should let rick pass', () => {
+      game.currentPlayerIndex = 0;
+
+      expect(game.players.length).to.equal(3);
+      return game.pass('rick').then(() => {
+        expect(game.players.length).to.equal(2);
+        expect(game.currentPlayerIndex).to.equal(0);
+      });
+    });
+
+    it('should let morty pass', () => {
+      game.currentPlayerIndex = 1;
+
+      expect(game.players.length).to.equal(3);
+      return game.pass('morty').then(() => {
+        expect(game.players.length).to.equal(2);
+        expect(game.currentPlayerIndex).to.equal(1);
+      });
+    });
+
+    it('should let summer pass', () => {
+      game.currentPlayerIndex = 2;
+
+      expect(game.players.length).to.equal(3);
+      return game.pass('summer').then(() => {
+        expect(game.players.length).to.equal(2);
+        expect(game.currentPlayerIndex).to.equal(0);
       });
     });
   });

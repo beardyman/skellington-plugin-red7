@@ -6,8 +6,6 @@ const player = require('./actions/player');
 
 module.exports = {
   init: (controller, bot, expressApp) => {
-    // build your bot logic here!
-
     slackUtils.init(controller, bot);
 
     // room commands
@@ -15,7 +13,6 @@ module.exports = {
 
 
     // player commands
-    player(controller, bot);s
-
+    player(controller, bot);
   }
 };

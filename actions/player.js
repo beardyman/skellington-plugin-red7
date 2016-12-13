@@ -10,6 +10,9 @@ const _ = require('lodash');
 module.exports = (controller, bot)=> {
 
   controller.hears(['dm me'],['direct_message','direct_mention'],function(bot,message) {
+
+    console.log(message);
+
     bot.startConversation(message,function(err,convo) {
       convo.say('Heard ya');
     });
@@ -35,15 +38,36 @@ module.exports = (controller, bot)=> {
   });
 
   controller.hears('play (\\d)\\s*(\\d)?', ['direct_message','direct_mention'], (bot, message) => {
-    return player.play(message).then(() => {
+    return player.play(message).then((res) => {
       // todo: respond to player saying their play is successful or not
+      bot.startPrivateConversation(message,function(err,dm) {
+        dm.say('Nice Play!');
+      });
+
 
       // todo: if their play is successful, post in room channel with current game status
+      bot.startConversation(message,function(err,convo) {
+        if (res === true) {
+          convo.say(`${game.getStatus().winner} has won!!!`);
+        }
+      });
     });
   });
 
   controller.hears('pass', ['direct_message','direct_mention'], (bot, message) => {
-    return slackUtils.respond(bot, message, player.pass(message));
+    console.log(message);
+
+    return player.pass(message).then((res) => {
+      bot.startConversation(message,function(err, convo) {
+        convo.say(res);
+
+        if (res === true) {
+          convo.say(`${game.getStatus().winner} has won!!!`);
+        }
+      });
+    });
+
+
 
     // todo: Post in room channel with current game status stating that the current player couldn't stand the heat.
   });

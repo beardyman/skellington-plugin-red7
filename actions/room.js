@@ -37,11 +37,11 @@ module.exports = (controller) => {
     return slackUtils.respond(bot, message, rooms.kick(message));
   });
 
-  controller.hears('status', 'direct_mention', (bot, message) => {
+  controller.hears('status', ['direct_message','direct_mention'], (bot, message) => {
     return slackUtils.respond(bot, message, rooms.getGameStatus(message));
   });
 
-  controller.hears('players', 'direct_mention', (bot, message) => {
+  controller.hears('players', ['direct_message','direct_mention'], (bot, message) => {
     return slackUtils.respond(bot, message, rooms.players(message));
   });
 

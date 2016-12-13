@@ -7,6 +7,7 @@ const _ = require('lodash');
 let teamsGet
   , teamsSave
   , usersInfo
+  , channelInfo
   , botId
   , utils = {};
 
@@ -21,6 +22,7 @@ utils.init = (controller, bot) => {
   teamsGet = q.nbind(controller.storage.teams.get, controller.storage.teams);
   teamsSave = q.nbind(controller.storage.teams.save, controller.storage.teams);
   usersInfo = q.nbind(bot.api.users.info, bot.api.users);
+  channelInfo = q.nbind(bot.api.channels.info, bot.api.channels);
 };
 
 /**
@@ -69,7 +71,7 @@ utils.getUser = (userId) => {
  */
 utils.save = (data) => {
   return teamsGet(botId).then((storedData) => {
-    var mergedData = _.merge({id: botId}, storedData, data);
+    let mergedData = _.merge({id: botId}, storedData, data);
     return teamsSave(mergedData);
   });
 };

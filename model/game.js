@@ -46,6 +46,7 @@ class Game {
       this.currentWinnerIndex = this._doPlayerIndexMath(this.currentPlayerIndex, -1);
     }
 
+    // fixes if the last player was eliminated.
     this.currentPlayerIndex = this._doPlayerIndexMath(this.currentPlayerIndex, 0);
   }
 
@@ -132,21 +133,36 @@ class Game {
   _rotateTurn() {
     this.currentPlayerIndex = this._doPlayerIndexMath(this.currentPlayerIndex, 1);
 
-    if (this.players[this.currentPlayerIndex].hand.length === 0 && this.currentPlayerIndex !== this.currentWinnerIndex) {
+    return this._startTurn();
+  }
 
+  /**
+   *
+   *
+   * @returns {*}
+   * @private
+   */
+  _startTurn() {
+    if(!this._canCurrentPlayerPlay()) {
       this._eliminatePlayer(this.currentPlayerIndex);
-
-      // need to move the cursor back to the current player because it will be rotated again
-      this.currentPlayerIndex = this._doPlayerIndexMath(this.currentPlayerIndex, -1);
 
       // check for winners
       if (this._isThereAWinner()) {
         return true;
       }
-      return this._rotateTurn();
-    }
 
-    return this.save();
+      return this._startTurn();
+    }
+  }
+
+  /**
+   * Evaluates the playability of a player at the beginning of their turn.
+   *
+   * @returns {*}
+   * @private
+   */
+  _canCurrentPlayerPlay() {
+    return !(_.get(this.players, `[${this.currentPlayerIndex}].hand.length`) === 0 && this.currentPlayerIndex !== this.currentWinnerIndex);
   }
 
   /**
@@ -204,6 +220,11 @@ class Game {
     return status;
   }
 
+  /**
+   * Gets the rule currently in play.
+   *
+   * @returns {string}
+   */
   getCurrentRule() {
     return `${_.upperFirst(this.currentRule)} - ${cardProperties.cardRuleDescriptions[this.currentRule]}`;
   }
@@ -250,7 +271,7 @@ class Game {
 
     return this._isItPlayersTurn(playerIndex).then(() => {
       this._eliminatePlayer(playerIndex);
-      return this._rotateTurn();
+      return this._startTurn();
     });
   }
 
