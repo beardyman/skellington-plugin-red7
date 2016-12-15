@@ -11,6 +11,14 @@ let teamsGet
   , botId
   , utils = {};
 
+
+utils.constants = {
+  eventTypes: {
+    direct_mention: 'direct_mention',
+    direct_message: 'direct_message'
+  }
+};
+
 /**
  *
  * @param controller

@@ -64,6 +64,11 @@ playerControls.play = (message) => {
   });
 };
 
+/**
+ *
+ * @param message
+ * @returns {Promise.<TResult>}
+ */
 playerControls.pass = (message) => {
   return slackUtils.getUser(message.user).then((res)=> {
     let user = res.name
@@ -73,6 +78,27 @@ playerControls.pass = (message) => {
     return table.game.pass(user).then(() => {
       return `${user} has passed like a chump`;
     });
+  });
+};
+
+
+/**
+ *
+ *
+ * @param message
+ * @returns {Promise.<TResult>}
+ */
+playerControls.sortCards = (message) => {
+  let sortType = message.match[1]
+    , preference = _.first(sortType) === 'c' ? 'color' : 'value';
+
+  return slackUtils.getUser(message.user).then((res)=> {
+    let user = res.name
+      , table = rooms.findTableForUser(message, user)
+      , player = table.game.findPlayerByUsername(user);
+
+    player.setSortPreference(preference);
+    return `Sorted as ${preference} first`;
   });
 };
 

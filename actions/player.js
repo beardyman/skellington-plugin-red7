@@ -5,13 +5,12 @@
 
 const player = require('../controller/player');
 const slackUtils = require('../utils/slack');
+const eventTypes = slackUtils.constants.eventTypes;
 const _ = require('lodash');
 
 module.exports = (controller, bot)=> {
 
   controller.hears(['dm me'],['direct_message','direct_mention'],function(bot,message) {
-
-    console.log(message);
 
     bot.startConversation(message,function(err,convo) {
       convo.say('Heard ya');
@@ -24,7 +23,7 @@ module.exports = (controller, bot)=> {
   });
 
 
-  controller.hears('hand', ['direct_message','direct_mention'], (bot, message) => {
+  controller.hears('^hand$', _.at(eventTypes, ['direct_message','direct_mention']), (bot, message) => {
     return player.hand(message).then((response)=> {
       bot.startPrivateConversation(message, (err, dm) => {
 
@@ -37,7 +36,7 @@ module.exports = (controller, bot)=> {
     });
   });
 
-  controller.hears('play (\\d)\\s*(\\d)?', ['direct_message','direct_mention'], (bot, message) => {
+  controller.hears('^play (\\d)\\s*(\\d)?$', _.at(eventTypes, ['direct_message','direct_mention']), (bot, message) => {
     return player.play(message).then((res) => {
       // todo: respond to player saying their play is successful or not
       bot.startPrivateConversation(message,function(err,dm) {
@@ -47,28 +46,47 @@ module.exports = (controller, bot)=> {
 
       // todo: if their play is successful, post in room channel with current game status
       bot.startConversation(message,function(err,convo) {
+        let status = game.getStatus();
+
         if (res === true) {
-          convo.say(`${game.getStatus().winner} has won!!!`);
+          convo.say(`${status.winner} has won!!!`);
+        } else {
+          convo.say(`@r7 show table`);
+          convo.say(`@${status.turn} its your turn!`);
         }
+
       });
     });
   });
 
-  controller.hears('pass', ['direct_message','direct_mention'], (bot, message) => {
-    console.log(message);
-
+  controller.hears('^pass$', _.at(eventTypes, ['direct_message','direct_mention']), (bot, message) => {
     return player.pass(message).then((res) => {
-      bot.startConversation(message,function(err, convo) {
-        convo.say(res);
+      bot.startConversation(message, function(err, convo) {
+        let status = game.getStatus();
 
         if (res === true) {
-          convo.say(`${game.getStatus().winner} has won!!!`);
+          convo.say(`${status.winner} has won!!!`);
+        } else {
+          convo.say(`@r7 show table`);
+          convo.say(res);
+          convo.say(`@${status.turn} its your turn!`);
         }
+
       });
     });
+  });
 
-
-
-    // todo: Post in room channel with current game status stating that the current player couldn't stand the heat.
+  controller.hears(['^sort (color)$', '^sort (value)$'], _.at(eventTypes, ['direct_message','direct_mention']), (bot, message) => {
+    return player.sortCards(message).then((res) => {
+      bot.startPrivateConversation(message,function(err,dm) {
+        if(err) {
+          console.log(err);
+        }
+        dm.say(res);
+      });
+    }).catch((err) => {
+      console.log('model err');
+      console.log(err);
+    }) ;
   });
 }

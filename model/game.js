@@ -175,7 +175,6 @@ class Game {
     return this.players.length === 1;
   }
 
-
   /**
    * Deals 7 cards for each player's hand and puts one inital card
    */
@@ -226,7 +225,16 @@ class Game {
    * @returns {string}
    */
   getCurrentRule() {
-    return `${_.upperFirst(this.currentRule)} - ${cardProperties.cardRuleDescriptions[this.currentRule]}`;
+    return cardProperties.getPropertyString(this.currentRule);
+  }
+
+  /**
+   * Gets the rule currently in play.
+   *
+   * @returns {string}
+   */
+  getCurrentRuleAsAttachment() {
+    return  [cardProperties.getPropertyAttachment(this.currentRule)];
   }
 
   /**

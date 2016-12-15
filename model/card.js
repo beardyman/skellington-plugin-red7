@@ -35,6 +35,17 @@ const colorRank = [
   'red'
 ];
 
+function getPropertyString(color) {
+  return `${_.upperFirst(color)} - ${cardRuleDescriptions[color]}`;
+}
+
+function getPropertyAttachment (color) {
+  return {
+    fallback: getPropertyString(color),
+    color: colorHexMap[color],
+    text: getPropertyString(color)
+  };
+}
 
 /**
  * Generates a SVG fragment depicting the card.
@@ -82,4 +93,4 @@ class Card {
 
 module.exports = Card;
 
-module.exports.properties = { cardRuleDescriptions, colorRank, colorHexMap};
+module.exports.properties = { cardRuleDescriptions, colorRank, colorHexMap, getPropertyString, getPropertyAttachment};
